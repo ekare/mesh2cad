@@ -1,0 +1,7 @@
+# Install an appropriate CUDA-enabled PyTorch wheel separately when GPU training is required.
+-r requirements.txt
+torch>=2.3,<3
+tqdm>=4.66,<5
+huggingface-hub>=1,<2
+py7zr>=1.1.3,<2
+pyarrow>=18,<24

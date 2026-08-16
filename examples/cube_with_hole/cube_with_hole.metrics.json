@@ -1,0 +1,218 @@
+{
+  "input": "/tmp/mesh2cad-demo-current/cube_with_hole.stl",
+  "output": "/tmp/mesh2cad-demo-current/cube_with_hole.step",
+  "mesh": {
+    "vertices": 384,
+    "faces": 768,
+    "bounds": [
+      [
+        -5.0,
+        -4.0,
+        -3.0
+      ],
+      [
+        5.0,
+        4.0,
+        3.0
+      ]
+    ]
+  },
+  "segmentation": {
+    "engine": "deterministic",
+    "region_count": 7,
+    "plane_count": 6,
+    "cylinder_count": 1,
+    "unassigned_face_count": 0,
+    "regions": [
+      {
+        "id": 0,
+        "kind": "plane",
+        "face_count": 192,
+        "area": 67.44313306023298,
+        "fit": {
+          "normal": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "offset": 3.0,
+          "origin": [
+            0.0,
+            0.0,
+            3.0
+          ],
+          "rms_error": 0.0,
+          "max_error": 0.0
+        }
+      },
+      {
+        "id": 1,
+        "kind": "plane",
+        "face_count": 192,
+        "area": 67.44313306023298,
+        "fit": {
+          "normal": [
+            -0.0,
+            -0.0,
+            -1.0
+          ],
+          "offset": 3.0,
+          "origin": [
+            0.0,
+            0.0,
+            -3.0
+          ],
+          "rms_error": 0.0,
+          "max_error": 0.0
+        }
+      },
+      {
+        "id": 2,
+        "kind": "plane",
+        "face_count": 48,
+        "area": 60.0,
+        "fit": {
+          "normal": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "offset": 4.0,
+          "origin": [
+            0.0,
+            4.0,
+            0.0
+          ],
+          "rms_error": 0.0,
+          "max_error": 0.0
+        }
+      },
+      {
+        "id": 3,
+        "kind": "plane",
+        "face_count": 48,
+        "area": 48.0,
+        "fit": {
+          "normal": [
+            -1.0,
+            -0.0,
+            -0.0
+          ],
+          "offset": 5.0,
+          "origin": [
+            -5.0,
+            0.0,
+            0.0
+          ],
+          "rms_error": 0.0,
+          "max_error": 0.0
+        }
+      },
+      {
+        "id": 4,
+        "kind": "plane",
+        "face_count": 48,
+        "area": 60.0,
+        "fit": {
+          "normal": [
+            -0.0,
+            -1.0,
+            -0.0
+          ],
+          "offset": 4.0,
+          "origin": [
+            0.0,
+            -4.0,
+            0.0
+          ],
+          "rms_error": 0.0,
+          "max_error": 0.0
+        }
+      },
+      {
+        "id": 5,
+        "kind": "plane",
+        "face_count": 48,
+        "area": 48.0,
+        "fit": {
+          "normal": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "offset": 5.0,
+          "origin": [
+            5.0,
+            0.0,
+            0.0
+          ],
+          "rms_error": 0.0,
+          "max_error": 0.0
+        }
+      },
+      {
+        "id": 6,
+        "kind": "cylinder",
+        "face_count": 192,
+        "area": 75.38396562789882,
+        "fit": {
+          "axis": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "axis_point": [
+            0.0,
+            -2.3748817022729428e-17,
+            0.0
+          ],
+          "radius": 2.000000002157499,
+          "axial_min": -3.0,
+          "axial_max": 3.0,
+          "height": 6.0,
+          "rms_error": 3.3220365174325346e-08,
+          "max_error": 5.82060737386314e-08
+        }
+      }
+    ]
+  },
+  "metrics": {
+    "analytic_surface_rmse": 1.4139754985211782e-08,
+    "analytic_surface_max_error": 5.82060737386314e-08,
+    "assigned_area_fraction": 1.0,
+    "assigned_face_fraction": 1.0,
+    "brep_vertex_rmse": 2.349034545729792e-08,
+    "brep_vertex_max_error": 5.8206073661500226e-08,
+    "fidelity_tolerance": 0.0014142135623730952,
+    "geometric_fidelity": 1.0,
+    "bidirectional_mean_error": 7.889278843044423e-05,
+    "bidirectional_rms_error": 0.00023409051733690235,
+    "bidirectional_p95_error": 0.0005999770859386825,
+    "bidirectional_p99_error": 0.001091864403525177,
+    "bidirectional_max_error": 0.001264405254878321,
+    "source_to_step_coverage": 1.0,
+    "step_to_source_coverage": 1.0,
+    "surface_area_relative_error": 5.035137577968827e-06,
+    "volume_relative_error": 6.370141344973669e-05,
+    "normal_median_error_degrees": 0.0,
+    "normal_p95_error_degrees": 1.5813711665942747,
+    "fidelity_sample_count": 40000,
+    "fidelity_tessellation_sampled": false
+  },
+  "cad_quality": {
+    "representation": "analytic-csg",
+    "analytic_reconstruction": true,
+    "analytic_area_fraction": 1.0,
+    "source_triangle_count": 768,
+    "brep_face_count": 7,
+    "face_reduction_fraction": 0.9908854166666666,
+    "valid_solid": true
+  },
+  "topology": {
+    "recognizer": "verified_oriented_box_with_through_cylinders",
+    "valid": true,
+    "face_count": 7,
+    "solid_count": 1,
+    "cylinders_cut": 1
+  }
+}

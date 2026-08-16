@@ -1,0 +1,3 @@
+# Runtime dependencies for direct neural STL-to-STEP inference and learned repair.
+-r requirements.txt
+torch>=2.3,<3

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Private, local-first STL to STEP reconstruction.">
+    <title>mesh2cad — STL to editable STEP</title>
+    <link rel="icon" href="/favicon.svg">
+    <link rel="stylesheet" href="/app.css?v=5">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">M2C</div>
+          <div>
+            <span class="brand-name">mesh2cad</span>
+            <span class="brand-version">v0.1 alpha</span>
+          </div>
+        </div>
+        <nav class="topbar-actions" aria-label="Application views">
+          <div class="engine-status"><i class="status-dot"></i> local engine · private session</div>
+          <a class="dashboard-link" href="/dashboard">Training dashboard <span>↗</span></a>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow">analytic reverse engineering</div>
+          <h1>From mesh<br><span>to solid.</span></h1>
+          <p class="hero-intro">
+            Drop a mechanical STL. mesh2cad detects planes and cylinders, rebuilds an
+            <strong>exact OpenCascade BRep</strong>, and gives you a standards-based STEP file.
+          </p>
+        </div>
+
+        <div class="workbench-grid">
+          <section class="panel upload-panel" aria-label="Upload and convert">
+            <div class="panel-kicker"><span>01 / source mesh</span><b>STL only</b></div>
+            <label class="dropzone" id="dropzone">
+              <input id="file-input" type="file" accept=".stl,model/stl">
+              <div class="drop-content">
+                <div class="drop-glyph" aria-hidden="true">↧</div>
+                <h2 id="drop-title">Drop your STL here</h2>
+                <p id="drop-detail">or click to browse · binary and ASCII supported</p>
+                <p class="selected-name" id="selected-name" hidden></p>
+              </div>
+            </label>
+            <button class="convert-button" id="convert-button" disabled>Convert to STEP →</button>
+            <p class="privacy-note"><b>●</b> Your mesh stays on this machine. No telemetry, no cloud upload.</p>
+          </section>
+
+          <section class="panel viewer-panel" aria-label="Mesh viewport">
+            <div class="viewer-stage">
+              <div class="viewer-canvas" id="viewer" aria-label="Interactive STL preview"></div>
+              <div class="viewer-overlay">
+                <div class="viewer-toolbar">
+                  <span class="tool-chip live">● live viewport</span>
+                  <div class="preview-switch" id="preview-switch" role="group" aria-label="Preview geometry" hidden>
+                    <button type="button" data-preview="original">Original STL</button>
+                    <button type="button" data-preview="step" class="active">Reconstructed STEP</button>
+                    <button type="button" data-preview="deviation">Deviation heatmap</button>
+                  </div>
+                  <span class="tool-chip">drag to orbit · wheel to zoom</span>
+                </div>
+                <div class="progress-card" id="progress-card" role="status" hidden>
+                  <div class="progress-row">
+                    <span>Segmenting + fitting + boolean reconstruction</span><span>WORKING</span>
+                  </div>
+                  <div class="progress-track"><i></i></div>
+                </div>
+                <div class="progress-card error-card" id="error-card" role="alert" hidden></div>
+                <div class="axis-widget" aria-hidden="true">
+                  <i class="axis-x"></i><i class="axis-y"></i><i class="axis-z"></i>
+                </div>
+                <div class="heatmap-legend" id="heatmap-legend" hidden>
+                  <span>0</span><i></i><span id="heatmap-limit">tolerance</span>
+                </div>
+              </div>
+            </div>
+            <div class="result-card" id="result-card" hidden>
+              <div class="quality-score">
+                <div class="result-heading" id="result-heading">✓ verified STEP reconstruction ready</div>
+                <span>Geometric fidelity</span>
+                <b id="fidelity-score">—</b>
+                <small id="fidelity-tolerance">bidirectional tolerance coverage</small>
+              </div>
+              <div class="quality-details">
+                <div class="result-grid">
+                  <div class="metric"><span>P95 deviation</span><b id="p95-error">—</b></div>
+                  <div class="metric"><span>Worst deviation</span><b id="max-error">—</b></div>
+                  <div class="metric"><span>Volume delta</span><b id="volume-delta">—</b></div>
+                  <div class="metric"><span>Normal P95</span><b id="normal-p95">—</b></div>
+                  <div class="metric"><span>Analytic coverage</span><b id="analytic-coverage">—</b></div>
+                  <div class="metric"><span>BRep faces</span><b id="brep-faces">—</b></div>
+                  <div class="metric"><span>Planes</span><b id="planes">—</b></div>
+                  <div class="metric"><span>Cylinders</span><b id="cylinders">—</b></div>
+                </div>
+                <div class="cad-status" id="cad-status">CAD representation pending</div>
+                <div class="mesh-diagnostic" id="mesh-diagnostic">Mesh diagnostics pending</div>
+              </div>
+              <div class="result-actions">
+                <button type="button" class="heatmap-button" id="heatmap-button">Inspect deviation heatmap</button>
+                <a class="download-button" id="download-button" href="#" download>
+                  <span id="download-label">Download STEP</span><span>↓</span>
+                </a>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="process-strip" aria-label="Reconstruction pipeline">
+          <div class="process-step"><b>01</b><span>Read mesh</span></div>
+          <div class="process-step"><b>02</b><span>Grow regions</span></div>
+          <div class="process-step"><b>03</b><span>Fit surfaces</span></div>
+          <div class="process-step"><b>04</b><span>Build CSG / BRep</span></div>
+          <div class="process-step"><b>05</b><span>Validate + export</span></div>
+        </div>
+      </section>
+
+      <footer class="site-footer">
+        <p><strong>Experimental software.</strong> You are solely responsible for validating every output and for any use in design, manufacturing, safety-critical, regulated, or production workflows. See DISCLAIMER.md.</p>
+        <p class="footer-links">Open source · MIT · Prepared together with ChatGPT.</p>
+      </footer>
+    </main>
+    <script type="module" src="/app.js?v=4"></script>
+  </body>
+</html>

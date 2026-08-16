@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Live mesh2cad preparation and neural training telemetry.">
+    <title>mesh2cad — Training Observatory</title>
+    <link rel="icon" href="/favicon.svg">
+    <link rel="stylesheet" href="/dashboard.css?v=3">
+  </head>
+  <body>
+    <div class="ambient-grid" aria-hidden="true"></div>
+    <main class="dashboard-shell">
+      <header class="dashboard-header">
+        <a class="brand" href="/" aria-label="Return to mesh2cad inference">
+          <span class="brand-mark">M2C</span>
+          <span><b>mesh2cad</b><small>training observatory</small></span>
+        </a>
+        <div class="connection" id="connection"><i></i><span>Connecting to live stream</span></div>
+      </header>
+
+      <section class="command-deck">
+        <div class="command-copy">
+          <p class="eyebrow">SYSTEM / LIVE TELEMETRY</p>
+          <h1>Know what the<br><span>model is learning.</span></h1>
+          <p class="lede">Loss, GPU pressure, dataset throughput, and the active pipeline phase — streamed directly from the machine.</p>
+        </div>
+        <div class="operation-card" data-state="idle" id="operation-card">
+          <div class="operation-topline"><span>ACTIVE OPERATION</span><b id="operation-state">STANDBY</b></div>
+          <strong id="operation-label">Waiting for telemetry</strong>
+          <p id="operation-detail">The dashboard will update automatically.</p>
+          <div class="operation-progress"><i id="operation-progress"></i></div>
+          <div class="operation-foot"><span id="operation-percent">—</span><span id="operation-eta">ETA —</span></div>
+        </div>
+      </section>
+
+      <section class="telemetry-grid" aria-label="Live telemetry">
+        <article class="panel gpu-panel">
+          <div class="panel-head"><span>GPU / COMPUTE</span><b id="gpu-live">AWAITING SIGNAL</b></div>
+          <div class="gpu-title"><strong id="gpu-name">NVIDIA GPU</strong><small id="gpu-pci">PCI —</small></div>
+          <div class="gpu-dials">
+            <div class="dial" id="gpu-dial"><span><b id="gpu-util">—</b><small>UTILIZATION</small></span></div>
+            <div class="dial memory-dial" id="vram-dial"><span><b id="vram-util">—</b><small>VRAM</small></span></div>
+          </div>
+          <div class="gpu-strip">
+            <div><span>Memory</span><b id="vram-detail">— / —</b></div>
+            <div><span>Temperature</span><b id="gpu-temp">—</b></div>
+            <div><span>Power</span><b id="gpu-power">—</b></div>
+          </div>
+        </article>
+
+        <article class="panel dataset-panel">
+          <div class="panel-head"><span>DATASET / PREPARATION</span><b id="prep-status">UNKNOWN</b></div>
+          <div class="dataset-count"><strong id="prep-completed">—</strong><span>prepared graphs</span></div>
+          <div class="long-progress"><i id="prep-progress"></i></div>
+          <div class="dataset-stats">
+            <div><span>Processed</span><b id="prep-processed">—</b></div>
+            <div><span>Rejected</span><b id="prep-failed">—</b></div>
+            <div><span>Remaining</span><b id="prep-remaining">—</b></div>
+            <div><span>Throughput</span><b id="prep-rate">—</b></div>
+          </div>
+          <div class="storage-row"><span>Training storage free</span><b id="storage-free">—</b></div>
+        </article>
+
+        <article class="panel loss-panel">
+          <div class="panel-head"><span>MODEL / LOSS</span><b id="loss-phase">NO ACTIVE RUN</b></div>
+          <div class="loss-primary">
+            <div><small>CURRENT LOSS</small><strong id="current-loss">—</strong></div>
+            <div class="loss-meta">
+              <span>Mean <b id="mean-loss">—</b></span>
+              <span>Epoch <b id="epoch-value">—</b></span>
+              <span>Batch <b id="batch-value">—</b></span>
+              <span>Global <b id="global-batch">—</b></span>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="loss-chart" aria-label="Recent training loss chart"></canvas>
+            <div class="chart-empty" id="chart-empty">Loss samples appear when training starts.</div>
+          </div>
+          <div class="chart-axis"><span>RECENT OPTIMIZER BATCHES</span><span id="loss-range">—</span></div>
+        </article>
+
+        <article class="panel quality-panel">
+          <div class="panel-head"><span>MODEL / QUALITY</span><b>BEST CHECKPOINT</b></div>
+          <div class="quality-grid">
+            <div class="quality-cell accent"><span>Surface macro IoU</span><strong id="macro-iou">—</strong></div>
+            <div class="quality-cell"><span>Boundary F1</span><strong id="boundary-f1">—</strong></div>
+            <div class="quality-cell"><span>Plane/cylinder IoU</span><strong id="supported-iou">—</strong></div>
+            <div class="quality-cell"><span>Best epoch</span><strong id="best-epoch">—</strong></div>
+          </div>
+          <div class="training-foot">
+            <span id="training-samples">— training samples</span>
+            <span id="training-config">AMP — · rotation — · prefetch —</span>
+            <span id="training-elapsed">Elapsed —</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="activity-panel panel">
+        <div class="panel-head"><span>EVENT STREAM</span><b id="last-update">NEVER</b></div>
+        <ol id="event-list" aria-live="polite">
+          <li><time>—</time><span>Waiting for the first machine snapshot.</span></li>
+        </ol>
+      </section>
+
+      <footer>
+        <p>Live values are operational telemetry, not model-quality guarantees.</p>
+        <p>Local stream · No cloud telemetry · Prepared together with ChatGPT.</p>
+      </footer>
+    </main>
+    <script type="module" src="/dashboard.js?v=8"></script>
+  </body>
+</html>

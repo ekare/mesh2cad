@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use mesh2cad in research, cite this software and any dataset you use."
+title: "mesh2cad"
+type: software
+version: 0.1.0
+date-released: 2026-08-14
+authors:
+  - name: "Prepared together with ChatGPT."
+license: MIT
+abstract: "Local-first analytic reconstruction of simple mechanical STL meshes as STEP BRep solids."
