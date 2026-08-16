@@ -1,8 +1,8 @@
 # Dataset strategy and provenance
 
-mesh2cad does not ship training data or checkpoints. Dataset downloads live outside the repository,
-and every public checkpoint requires its own model card, provenance manifest, evaluation report,
-and license review.
+mesh2cad ships the reviewed inference checkpoint, but not training data. Dataset downloads live
+outside the repository, and every public checkpoint requires its own model card, provenance
+manifest, evaluation report, and license review.
 
 ## Corpus roles
 

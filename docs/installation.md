@@ -3,7 +3,7 @@
 ## Supported environments
 
 - Python 3.10 through 3.13
-- Windows x64 and common x86-64 Linux distributions
+- Common x86-64 Linux distributions and WSL2
 - A browser with WebGL 2 for the interactive preview
 - CUDA is optional and used only by the learned segmentation track
 
@@ -34,15 +34,7 @@ cd mesh2cad
 python -m venv .venv
 ```
 
-Activate the environment:
-
-```powershell
-# Windows PowerShell
-.\.venv\Scripts\Activate.ps1
-```
-
 ```bash
-# Linux or macOS
 source .venv/bin/activate
 ```
 
@@ -57,11 +49,12 @@ python -m pip install -e . --no-deps
 Launch the browser app with `mesh2cad-web`, or convert directly with
 `mesh2cad input.stl -o output.step`.
 
-For a separately downloaded reviewed neural checkpoint, install the inference dependency set:
+The reviewed neural checkpoint is bundled in the source tree. Install the inference dependency set
+to enable it:
 
 ```bash
 python -m pip install -r requirements-inference.txt
-mesh2cad-web --checkpoint mesh2cad-automate-v0.1.pt --segmentation-engine neural
+mesh2cad-web --segmentation-engine neural
 ```
 
 Install `requirements-ml.txt` only for dataset preparation and training. Choose the appropriate

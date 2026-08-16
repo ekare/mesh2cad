@@ -15,6 +15,7 @@ release/
 .build/
 *.log
 *.pt
+!src/mesh2cad/models/mesh2cad-automate-v0.1.pt
 datasets/
 checkpoints/
 web/node_modules/

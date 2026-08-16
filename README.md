@@ -52,9 +52,9 @@ training run, and the application sends no operational data to a cloud service.
 Pass `--checkpoint model.pt --segmentation-engine neural` to the web launcher when a reviewed
 checkpoint should drive every request directly.
 
-The separately labelled neural Windows package already contains its reviewed inference-only model
-and starts in direct neural mode. The smaller deterministic package contains neither PyTorch nor a
-checkpoint. Both remain local-only and expose the same drag/drop interface and fidelity report.
+The repository includes the latest reviewed checkpoint under
+`src/mesh2cad/models/mesh2cad-automate-v0.1.pt`. Install `requirements-inference.txt` to enable
+PyTorch inference; the CLI and web app discover the bundled checkpoint automatically.
 
 ## Command line
 
@@ -168,8 +168,7 @@ Python 3.10-3.13 is supported. OpenCascade wheel availability is the limiting fa
 
 ```bash
 python -m venv .venv
-# Windows: .venv\Scripts\activate
-# Linux/macOS: source .venv/bin/activate
+source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -e ".[web,dev]"
 ruff check .
@@ -187,12 +186,10 @@ in [docs/releasing.md](docs/releasing.md).
 
 ## Repository policy
 
-The source repository contains no upstream dataset payload, user STL/STEP files, generated neural
-training corpus, or private recovery checkpoint. Dataset, checkpoint, temporary upload, and common
-CAD output paths are ignored by Git. A reviewed inference-only checkpoint may be distributed as a
-separate model asset and inside the explicitly labelled neural Windows package, together with its
-exact split manifest, provenance, model card, metrics, and license. The included mesh example is
-generated entirely by this project.
+The source repository contains no upstream dataset payload, user STL/STEP files, or generated
+training corpus. The reviewed inference checkpoint is bundled as a small model asset with its
+release metadata; private recovery checkpoints, temporary uploads, and common CAD output paths
+remain ignored by Git. The included mesh example is generated entirely by this project.
 
 ## License and data
 
