@@ -195,7 +195,7 @@ class ConversionResult:
     def cad_quality(self) -> dict[str, Any] | None:
         if self.topology is None:
             return None
-        analytic = self.topology.recognizer != "faithful_unified_mesh_brep"
+        analytic = not self.topology.recognizer.startswith("faithful_")
         return {
             "representation": "analytic-csg" if analytic else "mesh-derived-brep",
             "analytic_reconstruction": analytic,

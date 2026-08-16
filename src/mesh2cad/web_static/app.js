@@ -641,12 +641,14 @@ convertButton.addEventListener("click", async () => {
       Number(payload.cad_quality?.brep_face_count || 0).toLocaleString();
     byId("heatmap-limit").textContent =
       `${formatLength(payload.metrics.fidelity_tolerance)} model units`;
-    const faithful = payload.topology?.recognizer === "faithful_unified_mesh_brep";
+    const faithful = payload.topology?.recognizer?.startsWith("faithful_");
     byId("result-heading").textContent = faithful
-      ? "✓ faithful shape-preserving BRep ready"
+      ? (payload.topology?.recognizer === "faithful_open_mesh_shell"
+        ? "✓ open surface STEP ready"
+        : "✓ faithful shape-preserving BRep ready")
       : "✓ verified analytic STEP ready";
     byId("cad-status").textContent = faithful
-      ? `${payload.surfaces.engine} regions · Mesh-derived BRep · ${formatPercent(payload.cad_quality?.face_reduction_fraction, 1)} face reduction · geometry preserved, editability limited`
+      ? `${payload.surfaces.engine} regions · ${payload.topology?.recognizer === "faithful_open_mesh_shell" ? "Open mesh shell" : "Mesh-derived BRep"} · ${formatPercent(payload.cad_quality?.face_reduction_fraction, 1)} face reduction · geometry preserved, editability limited`
       : `${payload.surfaces.engine} regions · Analytic CSG · ${formatPercent(payload.cad_quality?.face_reduction_fraction, 1)} face reduction · editable primitives`;
     const meshQuality = payload.mesh_quality || {};
     const structural = formatPercent(meshQuality.structural_health, 0);

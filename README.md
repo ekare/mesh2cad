@@ -86,10 +86,11 @@ STL -> normals + triangle adjacency -> region growing -> plane/cylinder fits
     -> explicit CSG graph -> exact OpenCascade booleans -> validated BRep -> STEP + metrics
 ```
 
-For other watertight meshes, the current fallback exports a faithful mesh-derived BRep instead of
-inventing an incorrect analytic solid. That fallback preserves geometry but is not a clean,
-feature-editable CAD reconstruction. Arbitrary trim recovery, blends, pockets, cones, spheres,
-freeform patches, and general analytic topology remain future milestones.
+For other meshes, the current fallback exports a faithful mesh-derived BRep (a solid when the input
+is watertight, otherwise an open STEP shell) instead of inventing an incorrect analytic solid.
+That fallback preserves geometry but is not a clean, feature-editable CAD reconstruction.
+Arbitrary trim recovery, blends, pockets, cones, spheres, freeform patches, and general analytic
+topology remain future milestones.
 
 Large neural graphs are divided into overlapping core-and-halo partitions. Every triangle and
 every adjacency target is counted exactly once, while halo triangles preserve local context. The

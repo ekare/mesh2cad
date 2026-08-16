@@ -26,7 +26,8 @@ Launch the local web application with `mesh2cad-web --port 7861 --no-browser`, t
 `http://127.0.0.1:7861`. The browser UI exposes separate STL repair/simplification tools and
 post-reconstruction STEP simplification. The viewport uses an adaptive display budget for large
 meshes, with an optional full-resolution toggle; conversion itself never truncates the uploaded
-triangle mesh. No Node.js toolchain is required.
+triangle mesh. Open, non-watertight meshes are exported as faithful STEP shells rather than being
+forced into invented solids. No Node.js toolchain is required.
 
 ## Python install
 

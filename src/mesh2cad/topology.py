@@ -199,9 +199,7 @@ def simplify_shape(shape: Any, ocp: dict[str, Any], scale: float) -> Any:
 
 
 def _faithful_mesh_brep(data: MeshData, ocp: dict[str, Any]) -> Any:
-    """Build a watertight BRep from the mesh and merge every coplanar domain."""
-    if not data.mesh.is_watertight:
-        raise TopologyError("Faithful BRep reconstruction requires a watertight mesh")
+    """Build a mesh-derived BRep, preserving open meshes as STEP shells."""
     if not data.mesh.is_winding_consistent:
         raise TopologyError("Faithful BRep reconstruction requires consistent face winding")
 
@@ -233,9 +231,12 @@ def _faithful_mesh_brep(data: MeshData, ocp: dict[str, Any]) -> Any:
         shells.append(ocp["TopoDS"].Shell_s(shell_explorer.Current()))
         shell_explorer.Next()
     if len(shells) != 1:
-        raise TopologyError(
-            f"Faithful BRep reconstruction currently needs one closed shell; found {len(shells)}"
-        )
+        raise TopologyError(f"Faithful BRep reconstruction needs one shell; found {len(shells)}")
+
+    # An open STL (for example, a cup with an unsealed rim) is still a valid
+    # surface model. Export the sewn shell directly instead of inventing a cap.
+    if not data.mesh.is_watertight:
+        return simplify_shape(sewed, ocp, data.scale)
 
     solid_builder = ocp["BRepBuilderAPI_MakeSolid"](shells[0])
     if not solid_builder.IsDone():
@@ -320,12 +321,15 @@ def reconstruct_brep(data: MeshData, segmentation: SegmentationResult) -> Topolo
         pass
 
     faithful_shape = _faithful_mesh_brep(data, ocp)
+    faithful_recognizer = (
+        "faithful_open_mesh_shell" if not data.mesh.is_watertight else "faithful_unified_mesh_brep"
+    )
     return TopologyResult(
         shape=faithful_shape,
         summary=_topology_summary(
             faithful_shape,
             ocp,
-            recognizer="faithful_unified_mesh_brep",
+            recognizer=faithful_recognizer,
             cylinders_cut=0,
         ),
         vertex_distances=np.zeros(len(data.vertices), dtype=np.float64),
