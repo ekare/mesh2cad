@@ -1,7 +1,12 @@
-// Keep the interactive WebGL preview responsive for very dense source meshes.
-// This cap affects display only; conversion and fidelity metrics still use the
-// complete uploaded mesh on the backend.
-const MAX_PREVIEW_TRIANGLES = 50_000;
+// The adaptive preview keeps normal browser sessions responsive. Full-resolution mode
+// deliberately removes this display-only budget; conversion and fidelity always use the
+// complete uploaded mesh regardless of the viewport setting.
+const DEFAULT_PREVIEW_TRIANGLES = 250_000;
+let fullResolutionPreview = false;
+
+function previewTriangleBudget() {
+  return fullResolutionPreview ? Number.POSITIVE_INFINITY : DEFAULT_PREVIEW_TRIANGLES;
+}
 
 const byId = (id) => document.getElementById(id);
 const dropzone = byId("dropzone");
@@ -12,6 +17,7 @@ const repairButton = byId("repair-button");
 const simplifyStepButton = byId("simplify-step-button");
 const stlSimplifyRange = byId("stl-simplify-range");
 const stlSimplifyValue = byId("stl-simplify-value");
+const fullPreviewToggle = byId("full-preview-toggle");
 const stepSimplifyRange = byId("step-simplify-range");
 const stepSimplifyValue = byId("step-simplify-value");
 const progressCard = byId("progress-card");
@@ -164,7 +170,7 @@ function appendTriangle(positions, normals, a, b, c, normal) {
 
 function parseBinaryStl(buffer, triangleCount) {
   const view = new DataView(buffer);
-  const stride = Math.max(1, Math.ceil(triangleCount / MAX_PREVIEW_TRIANGLES));
+  const stride = Math.max(1, Math.ceil(triangleCount / previewTriangleBudget()));
   const positions = [];
   const normals = [];
   for (let triangle = 0; triangle < triangleCount; triangle += stride) {
@@ -198,7 +204,7 @@ function parseAsciiStl(buffer) {
     }
   }
   if (!triangles.length) throw new Error("The STL contains no readable triangles.");
-  const stride = Math.max(1, Math.ceil(triangles.length / MAX_PREVIEW_TRIANGLES));
+  const stride = Math.max(1, Math.ceil(triangles.length / previewTriangleBudget()));
   const positions = [];
   const normals = [];
   for (let index = 0; index < triangles.length; index += stride) {
@@ -540,6 +546,7 @@ async function simplifyStepFromConversion() {
   if (!lastConversionToken) return;
   const body = new FormData();
   body.append("token", lastConversionToken);
+  body.append("merge_faces", stepSimplifyRange.value);
   const response = await fetch("/api/simplify-step", { method: "POST", body });
   const payload = await response.json();
   if (!response.ok) throw new Error(payload.detail || "STEP simplification failed.");
@@ -548,6 +555,15 @@ async function simplifyStepFromConversion() {
 
 stlSimplifyRange.addEventListener("input", () => {
   stlSimplifyValue.textContent = `${Number(stlSimplifyRange.value).toLocaleString()} triangles`;
+});
+fullPreviewToggle.addEventListener("change", async () => {
+  fullResolutionPreview = fullPreviewToggle.checked;
+  if (!selectedFile || !viewer) return;
+  try {
+    await viewer.showFile(selectedFile);
+  } catch (error) {
+    showError(`Preview failed: ${error.message}. Conversion is still available.`);
+  }
 });
 stepSimplifyRange.addEventListener("input", () => {
   stepSimplifyValue.textContent = stepSimplifyRange.value === "1" ? "merge redundant faces" : "preserve topology";

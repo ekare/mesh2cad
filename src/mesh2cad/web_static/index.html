@@ -47,9 +47,13 @@
               </div>
             </label>
             <div class="tool-controls" aria-label="Mesh tools">
+              <label class="check-control" for="full-preview-toggle">
+                <input id="full-preview-toggle" type="checkbox">
+                <span>Full-resolution viewport <small>(may be heavy)</small></span>
+              </label>
               <label class="range-control" for="stl-simplify-range">
                 <span>STL simplify target <b id="stl-simplify-value">50,000 triangles</b></span>
-                <input id="stl-simplify-range" type="range" min="5000" max="200000" step="5000" value="50000">
+                <input id="stl-simplify-range" type="range" min="5000" max="1000000" step="5000" value="50000">
               </label>
               <div class="tool-buttons">
                 <button type="button" class="secondary-button" id="simplify-stl-button" disabled>Simplify STL ↓</button>

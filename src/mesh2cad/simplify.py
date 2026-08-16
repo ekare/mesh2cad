@@ -57,12 +57,17 @@ def _step_shape(path: Path, ocp: dict[str, Any]) -> Any:
     return shape
 
 
-def simplify_step_file(input_path: str | Path, output_path: str | Path) -> dict[str, int]:
+def simplify_step_file(
+    input_path: str | Path,
+    output_path: str | Path,
+    *,
+    merge_faces: bool = True,
+) -> dict[str, int | bool]:
     ocp = _load_ocp()
     source = Path(input_path)
     shape = _step_shape(source, ocp)
     before = _count_subshapes(shape, ocp["TopAbs_FACE"], ocp["TopExp_Explorer"])
-    simplified = simplify_shape(shape, ocp, 1.0)
+    simplified = simplify_shape(shape, ocp, 1.0) if merge_faces else shape
     after = _count_subshapes(simplified, ocp["TopAbs_FACE"], ocp["TopExp_Explorer"])
     export_step(simplified, output_path)
-    return {"input_faces": before, "output_faces": after}
+    return {"input_faces": before, "output_faces": after, "merged_faces": bool(merge_faces)}

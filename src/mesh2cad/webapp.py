@@ -139,6 +139,17 @@ def _static_directory() -> Path:
     return Path(str(resources.files("mesh2cad").joinpath("web_static")))
 
 
+def _max_upload_bytes() -> int:
+    """Return the optional upload cap; zero means intentionally unlimited."""
+    try:
+        value = int(os.environ.get("MESH2CAD_MAX_UPLOAD_BYTES", "0"))
+    except ValueError as exc:
+        raise RuntimeError("MESH2CAD_MAX_UPLOAD_BYTES must be an integer") from exc
+    if value < 0:
+        raise RuntimeError("MESH2CAD_MAX_UPLOAD_BYTES cannot be negative")
+    return value
+
+
 def create_app(
     *,
     store: ConversionStore | None = None,
@@ -230,7 +241,7 @@ def create_app(
 
         output_name = _safe_output_name(file.filename)
         token, input_path, step_path = conversion_store.create(output_name)
-        maximum = int(os.environ.get("MESH2CAD_MAX_UPLOAD_BYTES", "0"))
+        maximum = _max_upload_bytes()
         received = 0
         try:
             with input_path.open("wb") as destination:
@@ -291,8 +302,15 @@ def create_app(
         name = (file.filename or "").lower()
         if not name.endswith(suffixes):
             raise HTTPException(status_code=415, detail=f"Supported formats: {', '.join(suffixes)}")
+        maximum = _max_upload_bytes()
+        received = 0
         with input_path.open("wb") as destination:
             while chunk := await file.read(1024 * 1024):
+                received += len(chunk)
+                if maximum > 0 and received > maximum:
+                    raise HTTPException(
+                        status_code=413, detail="The upload exceeds the configured limit."
+                    )
                 destination.write(chunk)
         await file.close()
 
@@ -345,6 +363,7 @@ def create_app(
     async def simplify_step_upload(
         file: Annotated[UploadFile | None, File()] = None,
         token: Annotated[str | None, Form()] = None,
+        merge_faces: Annotated[int, Form()] = 1,
     ) -> dict[str, object]:
         source_token = token
         artifact_token, input_path, output_path = conversion_store.create_artifact(
@@ -360,7 +379,9 @@ def create_app(
                 raise HTTPException(
                     status_code=400, detail="Provide a STEP file or conversion token"
                 )
-            metrics = await run_in_threadpool(simplify_step_file, input_path, output_path)
+            metrics = await run_in_threadpool(
+                simplify_step_file, input_path, output_path, merge_faces=bool(merge_faces)
+            )
         except Exception as exc:
             conversion_store.discard(artifact_token)
             raise HTTPException(

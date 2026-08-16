@@ -24,7 +24,9 @@ python -m pip install -e . --no-deps
 
 Launch the local web application with `mesh2cad-web --port 7861 --no-browser`, then open
 `http://127.0.0.1:7861`. The browser UI exposes separate STL repair/simplification tools and
-post-reconstruction STEP simplification. No Node.js toolchain is required.
+post-reconstruction STEP simplification. The viewport uses an adaptive display budget for large
+meshes, with an optional full-resolution toggle; conversion itself never truncates the uploaded
+triangle mesh. No Node.js toolchain is required.
 
 ## Python install
 
