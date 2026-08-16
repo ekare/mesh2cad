@@ -46,6 +46,16 @@
                 <p class="selected-name" id="selected-name" hidden></p>
               </div>
             </label>
+            <div class="tool-controls" aria-label="Mesh tools">
+              <label class="range-control" for="stl-simplify-range">
+                <span>STL simplify target <b id="stl-simplify-value">50,000 triangles</b></span>
+                <input id="stl-simplify-range" type="range" min="5000" max="200000" step="5000" value="50000">
+              </label>
+              <div class="tool-buttons">
+                <button type="button" class="secondary-button" id="simplify-stl-button" disabled>Simplify STL ↓</button>
+                <button type="button" class="secondary-button" id="repair-button" disabled>Repair STL ↓</button>
+              </div>
+            </div>
             <button class="convert-button" id="convert-button" disabled>Convert to STEP →</button>
             <p class="privacy-note"><b>●</b> Your mesh stays on this machine. No telemetry, no cloud upload.</p>
           </section>
@@ -101,6 +111,11 @@
               </div>
               <div class="result-actions">
                 <button type="button" class="heatmap-button" id="heatmap-button">Inspect deviation heatmap</button>
+                <label class="range-control step-range" for="step-simplify-range">
+                  <span>STEP simplify <b id="step-simplify-value">merge redundant faces</b></span>
+                  <input id="step-simplify-range" type="range" min="0" max="1" step="1" value="1">
+                </label>
+                <button type="button" class="secondary-button" id="simplify-step-button">Simplify STEP ↓</button>
                 <a class="download-button" id="download-button" href="#" download>
                   <span id="download-label">Download STEP</span><span>↓</span>
                 </a>

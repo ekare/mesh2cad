@@ -24,6 +24,8 @@ from mesh2cad.metrics import preview_deviations
 from mesh2cad.model_resources import default_checkpoint, default_segmentation_engine
 from mesh2cad.pipeline import SegmentationMode, convert
 from mesh2cad.preview import ShapePreview, tessellate_shape
+from mesh2cad.repair import repair_file
+from mesh2cad.simplify import simplify_mesh_file, simplify_step_file
 from mesh2cad.types import ConversionResult
 
 
@@ -31,6 +33,13 @@ from mesh2cad.types import ConversionResult
 class StoredConversion:
     directory: Path
     step_path: Path
+    created_at: float
+
+
+@dataclass(frozen=True)
+class StoredArtifact:
+    directory: Path
+    output_path: Path
     created_at: float
 
 
@@ -42,6 +51,7 @@ class ConversionStore:
         self.root = root or Path(tempfile.mkdtemp(prefix="mesh2cad-web-"))
         self.root.mkdir(parents=True, exist_ok=True)
         self._jobs: dict[str, StoredConversion] = {}
+        self._artifacts: dict[str, StoredArtifact] = {}
 
     def create(self, output_name: str) -> tuple[str, Path, Path]:
         self.cleanup_expired()
@@ -57,10 +67,27 @@ class ConversionStore:
         self.cleanup_expired()
         return self._jobs.get(token)
 
+    def create_artifact(self, output_name: str) -> tuple[str, Path, Path]:
+        self.cleanup_expired()
+        token = uuid.uuid4().hex
+        directory = self.root / f"artifact-{token}"
+        directory.mkdir()
+        input_path = directory / "input.stl"
+        output_path = directory / output_name
+        self._artifacts[token] = StoredArtifact(directory, output_path, time.time())
+        return token, input_path, output_path
+
+    def get_artifact(self, token: str) -> StoredArtifact | None:
+        self.cleanup_expired()
+        return self._artifacts.get(token)
+
     def discard(self, token: str) -> None:
         job = self._jobs.pop(token, None)
         if job is not None:
             shutil.rmtree(job.directory, ignore_errors=True)
+        artifact = self._artifacts.pop(token, None)
+        if artifact is not None:
+            shutil.rmtree(artifact.directory, ignore_errors=True)
 
     def cleanup_expired(self) -> None:
         cutoff = time.time() - self.ttl_seconds
@@ -70,6 +97,7 @@ class ConversionStore:
 
     def close(self) -> None:
         self._jobs.clear()
+        self._artifacts.clear()
         shutil.rmtree(self.root, ignore_errors=True)
 
 
@@ -121,7 +149,7 @@ def create_app(
 ):
     """Create the FastAPI application without binding a public network interface."""
     try:
-        from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+        from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
         from fastapi.concurrency import run_in_threadpool
         from fastapi.responses import FileResponse, StreamingResponse
         from fastapi.staticfiles import StaticFiles
@@ -258,6 +286,106 @@ def create_app(
                 detail="This download has expired or does not exist.",
             )
         return FileResponse(job.step_path, filename=job.step_path.name, media_type="model/step")
+
+    async def _save_upload(file: UploadFile, input_path: Path, suffixes: tuple[str, ...]) -> None:
+        name = (file.filename or "").lower()
+        if not name.endswith(suffixes):
+            raise HTTPException(status_code=415, detail=f"Supported formats: {', '.join(suffixes)}")
+        with input_path.open("wb") as destination:
+            while chunk := await file.read(1024 * 1024):
+                destination.write(chunk)
+        await file.close()
+
+    @app.post("/api/repair")
+    async def repair_upload(file: Annotated[UploadFile, File()]) -> dict[str, object]:
+        token, input_path, output_path = conversion_store.create_artifact("repaired.stl")
+        try:
+            await _save_upload(file, input_path, (".stl",))
+            result = await run_in_threadpool(
+                repair_file,
+                input_path,
+                output_path,
+                checkpoint_path=checkpoint_path,
+                repairer_name="neural-analytic" if checkpoint_path is not None else "conservative",
+            )
+        except Exception as exc:
+            conversion_store.discard(token)
+            raise HTTPException(status_code=422, detail=f"Repair failed: {exc}") from exc
+        return {
+            "token": token,
+            "download_url": f"/api/artifact/{token}",
+            "output_name": output_path.name,
+            "repair": result.to_dict(),
+        }
+
+    @app.post("/api/simplify-stl")
+    async def simplify_stl_upload(
+        file: Annotated[UploadFile, File()],
+        target_faces: Annotated[int, Form()] = 50_000,
+    ) -> dict[str, object]:
+        token, input_path, output_path = conversion_store.create_artifact("simplified.stl")
+        try:
+            await _save_upload(file, input_path, (".stl",))
+            metrics = await run_in_threadpool(
+                simplify_mesh_file, input_path, output_path, target_faces
+            )
+        except Exception as exc:
+            conversion_store.discard(token)
+            raise HTTPException(
+                status_code=422, detail=f"STL simplification failed: {exc}"
+            ) from exc
+        return {
+            "token": token,
+            "download_url": f"/api/artifact/{token}",
+            "output_name": output_path.name,
+            **metrics,
+        }
+
+    @app.post("/api/simplify-step")
+    async def simplify_step_upload(
+        file: Annotated[UploadFile | None, File()] = None,
+        token: Annotated[str | None, Form()] = None,
+    ) -> dict[str, object]:
+        source_token = token
+        artifact_token, input_path, output_path = conversion_store.create_artifact(
+            "simplified.step"
+        )
+        try:
+            source_job = conversion_store.get(source_token) if source_token else None
+            if source_job is not None:
+                input_path = source_job.step_path
+            elif file is not None:
+                await _save_upload(file, input_path, (".step", ".stp"))
+            else:
+                raise HTTPException(
+                    status_code=400, detail="Provide a STEP file or conversion token"
+                )
+            metrics = await run_in_threadpool(simplify_step_file, input_path, output_path)
+        except Exception as exc:
+            conversion_store.discard(artifact_token)
+            raise HTTPException(
+                status_code=422, detail=f"STEP simplification failed: {exc}"
+            ) from exc
+        return {
+            "token": artifact_token,
+            "download_url": f"/api/artifact/{artifact_token}",
+            "output_name": output_path.name,
+            **metrics,
+        }
+
+    @app.get("/api/artifact/{token}")
+    def download_artifact(token: str):
+        artifact = conversion_store.get_artifact(token)
+        if artifact is None or not artifact.output_path.is_file():
+            raise HTTPException(
+                status_code=404, detail="This artifact has expired or does not exist."
+            )
+        media_type = "model/step" if artifact.output_path.suffix == ".step" else "model/stl"
+        return FileResponse(
+            artifact.output_path,
+            filename=artifact.output_path.name,
+            media_type=media_type,
+        )
 
     static = _static_directory()
     if static.is_dir():

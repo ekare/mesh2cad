@@ -74,6 +74,29 @@ def test_web_api_converts_and_downloads_step(tmp_path: Path):
             download = await client.get(payload["download_url"])
             assert download.status_code == 200
             assert b"ISO-10303-21" in download.content[:100]
+
+            with source.open("rb") as stream:
+                simplified = await client.post(
+                    "/api/simplify-stl",
+                    files={"file": ("demo.stl", stream, "model/stl")},
+                    data={"target_faces": "100"},
+                )
+            assert simplified.status_code == 200, simplified.text
+            assert simplified.json()["output_faces"] <= 100
+            assert (await client.get(simplified.json()["download_url"])).status_code == 200
+
+            with source.open("rb") as stream:
+                repaired = await client.post(
+                    "/api/repair", files={"file": ("demo.stl", stream, "model/stl")}
+                )
+            assert repaired.status_code == 200, repaired.text
+            assert (await client.get(repaired.json()["download_url"])).status_code == 200
+
+            step_simplified = await client.post(
+                "/api/simplify-step", data={"token": payload["token"]}
+            )
+            assert step_simplified.status_code == 200, step_simplified.text
+            assert (await client.get(step_simplified.json()["download_url"])).status_code == 200
         store.close()
 
     asyncio.run(exercise_api())

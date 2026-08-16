@@ -26,9 +26,6 @@ reports bidirectional fidelity and CAD-quality metrics, provides a deviation hea
 the STEP file for download. Files are processed in a temporary local directory, expire after one
 hour, and are not transmitted or used for telemetry.
 
-Windows users can also download the self-contained x64 release package and run
-`mesh2cad-web.exe`; Python is not required for that package.
-
 ### Live operations dashboard
 
 The web process also serves a read-only training dashboard at

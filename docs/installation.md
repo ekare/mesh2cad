@@ -7,29 +7,24 @@
 - A browser with WebGL 2 for the interactive preview
 - CUDA is optional and used only by the learned segmentation track
 
-## Windows x64 application
+## Linux / WSL source installation
 
-Choose one release, verify its SHA-256 file, and extract it to a normal user-writable directory:
+The supported distribution path is the Python source package. WSL2 Ubuntu 22.04/24.04 is a tested
+development environment; native Linux distributions work with Python 3.10–3.13 as well.
 
-- `mesh2cad-0.1.0-windows-x64.zip` is the smaller deterministic baseline.
-- `mesh2cad-0.1.0-windows-x64-neural.zip` includes CPU PyTorch, the qualified v0.1 inference
-  checkpoint, its exact split/provenance/model card/evaluation records, and defaults to direct
-  neural proposals.
-
-Run the executable from the corresponding extracted folder, for example:
-
-```powershell
-.\mesh2cad-0.1.0-windows-x64\mesh2cad-web.exe
+```bash
+unzip mesh2cad-0.1.0-source.zip
+cd mesh2cad-0.1.0
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m pip install -e . --no-deps
 ```
 
-The app opens `http://127.0.0.1:7860`. If that port is occupied, it chooses a free local port. No
-administrator permission or Python installation is required. Keep the complete extracted folder;
-the executable depends on the adjacent libraries and `licenses` directory.
-
-The same folder contains `mesh2cad.exe` for direct STL-to-STEP conversion and
-`mesh2cad-repair.exe` for measured conservative mesh cleanup. The operations dashboard is served
-at `/dashboard`; loss/GPU values appear when the packaged web process is pointed at active local
-telemetry files.
+Launch the local web application with `mesh2cad-web --port 7861 --no-browser`, then open
+`http://127.0.0.1:7861`. The browser UI exposes separate STL repair/simplification tools and
+post-reconstruction STEP simplification. No Node.js toolchain is required.
 
 ## Python install
 

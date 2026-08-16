@@ -284,6 +284,16 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
   .metric span { font-size: 7px; }
   .metric b { font-size: 12px; }
 }
+.tool-controls { margin: 18px 0 12px; padding: 14px; border: 1px solid var(--line); background: rgba(8, 14, 26, 0.7); }
+.range-control { display: grid; gap: 8px; color: var(--muted); font-size: 11px; letter-spacing: .04em; }
+.range-control b { color: var(--ink); font-weight: 600; }
+.range-control input { width: 100%; accent-color: var(--cyan); }
+.tool-buttons { display: flex; gap: 9px; margin-top: 12px; flex-wrap: wrap; }
+.secondary-button { border: 1px solid var(--line-strong); background: rgba(20, 31, 49, .9); color: var(--ink); padding: 10px 13px; cursor: pointer; font: inherit; font-size: 11px; }
+.secondary-button:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+.secondary-button:disabled { opacity: .4; cursor: not-allowed; }
+.step-range { flex: 1 1 220px; min-width: 180px; }
+.result-actions { flex-wrap: wrap; align-items: end; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
 }

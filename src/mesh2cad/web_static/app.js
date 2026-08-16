@@ -1,15 +1,26 @@
-const MAX_PREVIEW_TRIANGLES = 200_000;
+// Keep the interactive WebGL preview responsive for very dense source meshes.
+// This cap affects display only; conversion and fidelity metrics still use the
+// complete uploaded mesh on the backend.
+const MAX_PREVIEW_TRIANGLES = 50_000;
 
 const byId = (id) => document.getElementById(id);
 const dropzone = byId("dropzone");
 const fileInput = byId("file-input");
 const convertButton = byId("convert-button");
+const simplifyStlButton = byId("simplify-stl-button");
+const repairButton = byId("repair-button");
+const simplifyStepButton = byId("simplify-step-button");
+const stlSimplifyRange = byId("stl-simplify-range");
+const stlSimplifyValue = byId("stl-simplify-value");
+const stepSimplifyRange = byId("step-simplify-range");
+const stepSimplifyValue = byId("step-simplify-value");
 const progressCard = byId("progress-card");
 const resultCard = byId("result-card");
 const errorCard = byId("error-card");
 const previewSwitch = byId("preview-switch");
 const previewButtons = [...previewSwitch.querySelectorAll("button[data-preview]")];
 let selectedFile = null;
+let lastConversionToken = null;
 
 function multiply4(a, b) {
   const out = new Float32Array(16);
@@ -484,6 +495,8 @@ async function selectFile(file) {
   byId("selected-name").textContent = file.name;
   byId("selected-name").hidden = false;
   convertButton.disabled = false;
+  simplifyStlButton.disabled = false;
+  repairButton.disabled = false;
   resultCard.hidden = true;
   errorCard.hidden = true;
   previewSwitch.hidden = true;
@@ -496,6 +509,70 @@ async function selectFile(file) {
     }
   }
 }
+
+function downloadPayload(payload) {
+  const link = document.createElement("a");
+  link.href = payload.download_url;
+  link.download = payload.output_name || "mesh2cad-output";
+  link.click();
+}
+
+async function runMeshTool(endpoint, fields, label) {
+  if (!selectedFile) return;
+  const body = new FormData();
+  body.append("file", selectedFile);
+  for (const [key, value] of Object.entries(fields)) body.append(key, String(value));
+  const response = await fetch(endpoint, { method: "POST", body });
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.detail || `${label} failed.`);
+  if (endpoint === "/api/simplify-stl" && viewer) {
+    const simplifiedResponse = await fetch(payload.download_url);
+    const blob = await simplifiedResponse.blob();
+    selectedFile = new File([blob], payload.output_name, { type: "model/stl" });
+    await viewer.showFile(selectedFile);
+    byId("drop-detail").textContent = `${(selectedFile.size / 1048576).toFixed(2)} MB · simplified preview`;
+  }
+  downloadPayload(payload);
+  return payload;
+}
+
+async function simplifyStepFromConversion() {
+  if (!lastConversionToken) return;
+  const body = new FormData();
+  body.append("token", lastConversionToken);
+  const response = await fetch("/api/simplify-step", { method: "POST", body });
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.detail || "STEP simplification failed.");
+  downloadPayload(payload);
+}
+
+stlSimplifyRange.addEventListener("input", () => {
+  stlSimplifyValue.textContent = `${Number(stlSimplifyRange.value).toLocaleString()} triangles`;
+});
+stepSimplifyRange.addEventListener("input", () => {
+  stepSimplifyValue.textContent = stepSimplifyRange.value === "1" ? "merge redundant faces" : "preserve topology";
+});
+
+simplifyStlButton.addEventListener("click", async () => {
+  simplifyStlButton.disabled = true;
+  try { await runMeshTool("/api/simplify-stl", { target_faces: stlSimplifyRange.value }, "STL simplification"); }
+  catch (error) { showError(error.message); }
+  finally { simplifyStlButton.disabled = false; }
+});
+
+simplifyStepButton.addEventListener("click", async () => {
+  simplifyStepButton.disabled = true;
+  try { await simplifyStepFromConversion(); }
+  catch (error) { showError(error.message); }
+  finally { simplifyStepButton.disabled = false; }
+});
+
+repairButton.addEventListener("click", async () => {
+  repairButton.disabled = true;
+  try { await runMeshTool("/api/repair", {}, "Repair"); }
+  catch (error) { showError(error.message); }
+  finally { repairButton.disabled = false; }
+});
 
 fileInput.addEventListener("change", () => selectFile(fileInput.files?.[0]));
 for (const eventName of ["dragenter", "dragover"]) {
@@ -528,6 +605,7 @@ convertButton.addEventListener("click", async () => {
       ? await response.json()
       : { detail: await response.text() };
     if (!response.ok) throw new Error(payload.detail || `Conversion failed (HTTP ${response.status}).`);
+    lastConversionToken = payload.token;
     byId("planes").textContent = payload.surfaces.planes;
     byId("cylinders").textContent = payload.surfaces.cylinders;
     byId("fidelity-score").textContent = formatPercent(payload.metrics.geometric_fidelity);

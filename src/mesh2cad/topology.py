@@ -186,6 +186,18 @@ def _validate_shape(shape: Any, ocp: dict[str, Any]) -> None:
         raise TopologyError("Reconstructed OpenCascade shape is invalid")
 
 
+def simplify_shape(shape: Any, ocp: dict[str, Any], scale: float) -> Any:
+    """Merge redundant same-domain BRep faces without changing the solid geometry."""
+    unify = ocp["ShapeUpgrade_UnifySameDomain"](shape, True, True, False)
+    tolerance = max(float(scale) * 1e-7, 1e-9)
+    unify.SetLinearTolerance(tolerance)
+    unify.SetAngularTolerance(1e-7)
+    unify.Build()
+    simplified = unify.Shape()
+    _validate_shape(simplified, ocp)
+    return simplified
+
+
 def _faithful_mesh_brep(data: MeshData, ocp: dict[str, Any]) -> Any:
     """Build a watertight BRep from the mesh and merge every coplanar domain."""
     if not data.mesh.is_watertight:
@@ -232,11 +244,7 @@ def _faithful_mesh_brep(data: MeshData, ocp: dict[str, Any]) -> Any:
     if not ocp["BRepLib"].OrientClosedSolid_s(solid):
         raise TopologyError("OpenCascade could not orient the reconstructed solid")
 
-    unify = ocp["ShapeUpgrade_UnifySameDomain"](solid, True, True, False)
-    unify.Build()
-    unified = unify.Shape()
-    _validate_shape(unified, ocp)
-    return unified
+    return simplify_shape(solid, ocp, data.scale)
 
 
 def _topology_summary(
@@ -282,7 +290,7 @@ def reconstruct_brep(data: MeshData, segmentation: SegmentationResult) -> Topolo
     ocp = _load_ocp()
     try:
         graph = recognize_csg(data, segmentation)
-        analytic_shape = evaluate(graph, ocp)
+        analytic_shape = simplify_shape(evaluate(graph, ocp), ocp, data.scale)
         _validate_shape(analytic_shape, ocp)
         analytic_distances = vertex_distances_to_shape(data.vertices, analytic_shape)
         reverse_distances = _candidate_to_mesh_distances(data, analytic_shape)
