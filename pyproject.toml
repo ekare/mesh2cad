@@ -40,7 +40,7 @@ dev = [
 dataset = [
   "huggingface-hub>=1,<2",
   "py7zr>=1.1.3,<2",
-  "pyarrow>=18,<24",
+  "pyarrow>=18,<26",
   "tqdm>=4.66,<5",
 ]
 ml = [
