@@ -338,10 +338,13 @@ class MeshViewer {
     this.canvas.addEventListener("pointermove", (event) => {
       if (!this.dragging) return;
       this.yaw += (event.clientX - this.lastPointer[0]) * 0.009;
-      this.pitch = Math.max(-1.45, Math.min(1.45, this.pitch + (event.clientY - this.lastPointer[1]) * 0.009));
+      // Do not clamp vertical orbit: users can inspect every side of a model,
+      // including flipping it completely upside down.
+      this.pitch += (event.clientY - this.lastPointer[1]) * 0.009;
       this.lastPointer = [event.clientX, event.clientY];
     });
     this.canvas.addEventListener("pointerup", () => { this.dragging = false; });
+    this.canvas.addEventListener("pointercancel", () => { this.dragging = false; });
     this.canvas.addEventListener("wheel", (event) => {
       event.preventDefault();
       this.distance = Math.max(2.8, Math.min(10, this.distance * Math.exp(event.deltaY * 0.001)));
