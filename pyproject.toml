@@ -49,7 +49,7 @@ ml = [
 ]
 web = [
   "fastapi>=0.115,<1",
-  "uvicorn>=0.30,<1",
+  "uvicorn>=0.54.0,<1",
   "python-multipart>=0.0.18,<1",
 ]
 release = [
