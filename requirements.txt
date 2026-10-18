@@ -1,7 +1,7 @@
 # Runtime dependencies for the CLI and local web application.
 numpy>=1.26,<3
 scipy>=1.12,<2
-trimesh>=4.4,<5
+trimesh>=5.1.1,<6
 networkx>=3.0,<4
 fast-simplification>=0.0.4,<1
 rtree>=1.4,<2
